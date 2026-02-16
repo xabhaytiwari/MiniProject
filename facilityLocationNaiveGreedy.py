@@ -1,5 +1,7 @@
 from abc import ABC, abstractclassmethod
 from typing import List, Any
+import numpy as np
+from sklearn.metrics.pairwise import pairwise_distances
 
 class SubModularFunction(ABC):
     """
@@ -32,4 +34,29 @@ class SubModularFunction(ABC):
         :rtype: float
         """
         pass
+
+class FacilityLocationObjective(SubModularFunction):
+    """
+    The objective is to measure the "representativeness" of an Subset against our Dataset.
+    """
+    def __init__(self, X_pool: np.ndarray ):
+        super().__init__()
+        self.metric = 'euclidean'
+        distances = pairwise_distances(X_pool, metric=self.metric)
+        sigma = np.mean(distances)
+        self.similarity_matrix = np.exp(-distances / sigma)
+    
+    def evaluate(self, selected_indices: List[int]) -> float:
+        num_of_samples = self.similarity_matrix.shape[0]
+        if not selected_indices:
+            current_score = 0.0
+        else:
+            max_similarity_current = np.max(self.similarity_matrix[:, selected_indices], axis=1)
+            current_score = np.sum(max_similarity_current)
+        
+        return current_score
+    
+    def marginal_gain(self, selected_set_indices: List[int], item_index: int) -> float:
+        new_indices = selected_set_indices + [item_index]
+        return self.evaluate(new_indices) - self.evaluate(selected_set_indices) 
     
