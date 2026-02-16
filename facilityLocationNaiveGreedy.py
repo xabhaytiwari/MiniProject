@@ -1,4 +1,4 @@
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractclassmethod, abstractmethod
 from typing import List, Any
 import numpy as np
 from sklearn.metrics.pairwise import pairwise_distances
@@ -10,7 +10,7 @@ class SubModularFunction(ABC):
     This class servers as a strict contract for all submodular functions implementations.
     """
 
-    @ABC
+    @abstractmethod
     def evaluate(self, selected_set_indices: List[int]) -> float:
         """
         Calculates the total score of a set.
@@ -22,7 +22,7 @@ class SubModularFunction(ABC):
         """
         pass
 
-    @ABC
+    @abstractmethod
     def marginal_gain(self, selected_set_indices: List[int], item_index: int) -> float:
         """
          The Selected Set Indices, for which we're calculating the score.
@@ -60,3 +60,41 @@ class FacilityLocationObjective(SubModularFunction):
         new_indices = selected_set_indices + [item_index]
         return self.evaluate(new_indices) - self.evaluate(selected_set_indices) 
     
+class GreedyOptimizer:
+    def __init__(self, objective: SubModularFunction):
+        self.objective = objective
+        
+    
+    def select(self, total_size: int, budget: int) -> List[int]:
+        selected_indices = []
+        remaining_indices = list(range(total_size))
+
+        for _ in range(budget):
+            best_gain = -np.inf
+            best_candidate = -1
+
+            for candidate in remaining_indices:
+                gain = self.objective.marginal_gain(selected_indices, candidate)
+            
+                if gain > best_gain:
+                        best_gain = gain
+                        best_candidate = candidate
+            
+            if best_candidate != -1:
+                selected_indices.append(best_candidate)
+                remaining_indices.remove(best_candidate)
+
+        return selected_indices
+
+if __name__ == "__main__":
+    np.random.seed(42)
+    data_pool = np.random.rand(20, 2)
+
+    objective_function = FacilityLocationObjective(data_pool)
+    optimizer = GreedyOptimizer(objective_function)
+
+    selected_subset = optimizer.select(total_size=len(data_pool), budget=5)
+
+    print(f"Selected Indices: {selected_subset}")
+    print(f"Selected Data Points:\n{data_pool[selected_subset]}")
+
