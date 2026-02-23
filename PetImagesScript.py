@@ -50,7 +50,7 @@ class Greedyptimizer:
         remaining_incdices = list(range(total_size))
 
         for _ in range(budget):
-            best_gain = float('inf')
+            best_gain = float('-inf')
             best_candidate = -1
 
             for candidate in remaining_incdices:
@@ -73,6 +73,7 @@ for ext in extensions:
     image_paths.extend(
         glob.glob(f"PetImages/**/*.{ext}", recursive=True)
     )
+
 
 batch_size = 32
 model = SentenceTransformer("sentence-transformers/clip-ViT-B-32")
