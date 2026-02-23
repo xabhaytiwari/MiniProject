@@ -1,15 +1,11 @@
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, util
+from PIL import Image
 
 model = SentenceTransformer("sentence-transformers/clip-ViT-B-32")
 
-sentences = [
-    "That is a happy person",
-    "That is a happy dog",
-    "That is a very happy person",
-    "Today is a sunny day"
-]
-embeddings = model.encode(sentences)
+cat_img_emb_1 = model.encode(Image.open('PetImages/Cat/1.jpg'))
+cat_img_emb_2 = model.encode(Image.open('PetImages/Cat/4.jpg'))
+dog_img_emb = model.encode(Image.open('PetImages/Dog/1.jpg'))
 
-similarities = model.similarity(embeddings, embeddings)
-print(similarities)
-# [4, 4]
+cos_score = util.cos_sim(cat_img_emb_1, cat_img_emb_2)
+print(cos_score)
